@@ -288,6 +288,10 @@
                 <input type="number" id="tolerance" value="90" min="0" max="100" inputmode="numeric" pattern="[0-9]*">
             </div>
             <div class="control-group">
+                <label for="maxColors">Max Colors:</label>
+                <input type="number" id="maxColors" value="6" min="2" max="20" inputmode="numeric" pattern="[0-9]*">
+            </div>
+            <div class="control-group">
                 <label for="showAllNumbers">Show All Numbers:</label>
                 <input type="checkbox" id="showAllNumbers">
             </div>
@@ -407,6 +411,16 @@
                 processImage();
             }
         });
+        document.getElementById('maxColors').addEventListener('input', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+        document.getElementById('maxColors').addEventListener('change', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
 
         function handleFile(file) {
             if (!file.type.startsWith('image/')) {
@@ -519,6 +533,7 @@
             const offsetX = parseInt(document.getElementById('offsetX').value);
             const offsetY = parseInt(document.getElementById('offsetY').value);
             const tolerance = parseInt(document.getElementById('tolerance').value);
+            const maxColors = parseInt(document.getElementById('maxColors').value);
             const showAllNumbers = document.getElementById('showAllNumbers').checked;
             const showGrid = document.getElementById('showGrid').checked;
             const showColorOverlay = document.getElementById('showColorOverlay').checked;
@@ -534,8 +549,7 @@
             const rows = Math.floor((canvas.height - offsetY) / gridSize);
 
             let patternData = [];
-            let colorMap = new Map();
-            let colorIndex = 0;
+            let allCellColors = [];
             let cellNumber = 1;
 
             // Process each row - create individual cells for each grid position
@@ -556,46 +570,31 @@
                         const g = data[pixelIndex + 1];
                         const b = data[pixelIndex + 2];
 
-                        const color = `rgb(${r},${g},${b})`;
-                        const colorKey = getColorKey(r, g, b, tolerance);
-
-                        if (!colorMap.has(colorKey)) {
-                            colorMap.set(colorKey, {
-                                color: color,
-                                symbol: String.fromCharCode(65 + colorIndex),
-                                index: colorIndex++
-                            });
-                        }
-
-                        const colorInfo = colorMap.get(colorKey);
-
-                        // Check if this is the same color as the previous cell
-                        if (currentColor && isSameColor(currentColor, colorKey)) {
-                            consecutiveCount++;
-                        } else {
-                            // Start new color sequence
-                            currentColor = colorKey;
-                            consecutiveCount = 1;
-                            sequenceStart = col;
-                        }
-
-                        // Add individual cell with its position in the sequence
-                        rowData.push({
-                            color: colorInfo,
+                        // Store raw color data for clustering
+                        allCellColors.push({
+                            r: r,
+                            g: g,
+                            b: b,
                             x: x,
                             y: y,
-                            consecutivePosition: consecutiveCount,
-                            cellNumber: cellNumber,
                             col: col,
-                            row: row
+                            row: row,
+                            cellNumber: cellNumber
                         });
 
                         cellNumber++;
                     }
                 }
 
-                patternData.push(rowData);
+                // Will be populated after color clustering
+                patternData.push([]);
             }
+
+            // Perform color clustering to limit colors and ensure all cells have colors
+            const colorMap = performColorClustering(allCellColors, maxColors);
+
+            // Rebuild pattern data with clustered colors
+            patternData = rebuildPatternData(allCellColors, colorMap, rows, cols);
 
             // Draw color overlay if enabled
             if (showColorOverlay) {
@@ -692,6 +691,124 @@
             });
 
             ctx.globalAlpha = 1.0;
+        }
+
+        function performColorClustering(cellColors, maxColors) {
+            if (cellColors.length === 0) return new Map();
+
+            // Simple k-means-like clustering
+            let clusters = [];
+
+            // Initialize with first few colors as seeds
+            for (let i = 0; i < Math.min(maxColors, cellColors.length); i++) {
+                const seedIndex = Math.floor(i * cellColors.length / maxColors);
+                const seed = cellColors[seedIndex];
+                clusters.push({
+                    r: seed.r,
+                    g: seed.g,
+                    b: seed.b,
+                    count: 0,
+                    totalR: 0,
+                    totalG: 0,
+                    totalB: 0
+                });
+            }
+
+            // Assign each cell to nearest cluster and update cluster centers
+            for (let iteration = 0; iteration < 5; iteration++) {
+                // Reset cluster totals
+                clusters.forEach(cluster => {
+                    cluster.count = 0;
+                    cluster.totalR = 0;
+                    cluster.totalG = 0;
+                    cluster.totalB = 0;
+                });
+
+                // Assign cells to nearest cluster
+                cellColors.forEach(cell => {
+                    let minDistance = Infinity;
+                    let bestCluster = 0;
+
+                    clusters.forEach((cluster, index) => {
+                        const distance = Math.sqrt(
+                            Math.pow(cell.r - cluster.r, 2) +
+                            Math.pow(cell.g - cluster.g, 2) +
+                            Math.pow(cell.b - cluster.b, 2)
+                        );
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            bestCluster = index;
+                        }
+                    });
+
+                    cell.clusterIndex = bestCluster;
+                    clusters[bestCluster].count++;
+                    clusters[bestCluster].totalR += cell.r;
+                    clusters[bestCluster].totalG += cell.g;
+                    clusters[bestCluster].totalB += cell.b;
+                });
+
+                // Update cluster centers
+                clusters.forEach(cluster => {
+                    if (cluster.count > 0) {
+                        cluster.r = Math.round(cluster.totalR / cluster.count);
+                        cluster.g = Math.round(cluster.totalG / cluster.count);
+                        cluster.b = Math.round(cluster.totalB / cluster.count);
+                    }
+                });
+            }
+
+            // Create color map
+            const colorMap = new Map();
+            clusters.forEach((cluster, index) => {
+                const color = `rgb(${cluster.r},${cluster.g},${cluster.b})`;
+                colorMap.set(index, {
+                    color: color,
+                    symbol: String.fromCharCode(65 + index),
+                    index: index
+                });
+            });
+
+            return colorMap;
+        }
+
+        function rebuildPatternData(cellColors, colorMap, rows, cols) {
+            const patternData = [];
+
+            for (let row = 0; row < rows; row++) {
+                const rowData = [];
+                let currentColor = null;
+                let consecutiveCount = 0;
+
+                for (let col = 0; col < cols; col++) {
+                    const cellIndex = row * cols + col;
+                    if (cellIndex < cellColors.length) {
+                        const cell = cellColors[cellIndex];
+                        const colorInfo = colorMap.get(cell.clusterIndex);
+
+                        // Check if this is the same color as the previous cell
+                        if (currentColor === null || currentColor !== cell.clusterIndex) {
+                            currentColor = cell.clusterIndex;
+                            consecutiveCount = 1;
+                        } else {
+                            consecutiveCount++;
+                        }
+
+                        rowData.push({
+                            color: colorInfo,
+                            x: cell.x,
+                            y: cell.y,
+                            consecutivePosition: consecutiveCount,
+                            cellNumber: cell.cellNumber,
+                            col: cell.col,
+                            row: cell.row
+                        });
+                    }
+                }
+                patternData.push(rowData);
+            }
+
+            return patternData;
         }
 
         function drawOverlay(patternData, gridSize, showAllNumbers) {
