@@ -295,6 +295,10 @@
                 <label for="showGrid">Show Grid Overlay:</label>
                 <input type="checkbox" id="showGrid" checked>
             </div>
+            <div class="control-group">
+                <label for="showColorOverlay">Show Color Overlay:</label>
+                <input type="checkbox" id="showColorOverlay">
+            </div>
             <button class="grid-color-btn" id="gridColorBtn" onclick="randomizeGridColor()" disabled>🎨 Change Grid Color</button>
             <button class="download-btn" id="downloadBtn" onclick="downloadImage()" disabled>💾 Download Image</button>
         </div>
@@ -365,7 +369,7 @@
                 clearTimeout(gridSizeTimeout);
                 gridSizeTimeout = setTimeout(() => {
                     processImage();
-                }, 300);
+                }, 800);
             }
         });
         document.getElementById('gridSize').addEventListener('change', () => {
@@ -394,6 +398,11 @@
             }
         });
         document.getElementById('showGrid').addEventListener('change', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+        document.getElementById('showColorOverlay').addEventListener('change', () => {
             if (originalImage) {
                 processImage();
             }
@@ -512,6 +521,7 @@
             const tolerance = parseInt(document.getElementById('tolerance').value);
             const showAllNumbers = document.getElementById('showAllNumbers').checked;
             const showGrid = document.getElementById('showGrid').checked;
+            const showColorOverlay = document.getElementById('showColorOverlay').checked;
 
             // Clear canvas and redraw image
             displayOriginalImage();
@@ -587,6 +597,11 @@
                 patternData.push(rowData);
             }
 
+            // Draw color overlay if enabled
+            if (showColorOverlay) {
+                drawColorOverlay(patternData, gridSize);
+            }
+
             // Draw grid lines and overlays
             if (showGrid) {
                 drawGridLines(gridSize, cols, rows, offsetX, offsetY);
@@ -660,6 +675,23 @@
             }
 
             ctx.setLineDash([]);
+        }
+
+        function drawColorOverlay(patternData, gridSize) {
+            ctx.globalAlpha = 0.4;
+
+            patternData.forEach((row, rowIndex) => {
+                row.forEach((cell, cellIndex) => {
+                    const cellX = cell.x - gridSize / 2;
+                    const cellY = cell.y - gridSize / 2;
+
+                    // Fill cell with detected color
+                    ctx.fillStyle = cell.color.color;
+                    ctx.fillRect(cellX, cellY, gridSize, gridSize);
+                });
+            });
+
+            ctx.globalAlpha = 1.0;
         }
 
         function drawOverlay(patternData, gridSize, showAllNumbers) {
