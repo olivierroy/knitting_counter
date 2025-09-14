@@ -153,11 +153,22 @@
             margin: 0;
         }
 
-        /* Remove spinner arrows on WebKit browsers */
-        .control-group input[type="number"]::-webkit-outer-spin-button,
-        .control-group input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        /* Show spinner arrows on desktop, hide on mobile */
+        @media (min-width: 769px) {
+            .control-group input[type="number"]::-webkit-outer-spin-button,
+            .control-group input[type="number"]::-webkit-inner-spin-button {
+                -webkit-appearance: auto;
+                margin: 0;
+            }
+        }
+
+        /* Remove spinner arrows on mobile/touch devices */
+        @media (max-width: 768px) {
+            .control-group input[type="number"]::-webkit-outer-spin-button,
+            .control-group input[type="number"]::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
         }
 
         /* Improve touch targets on mobile */
