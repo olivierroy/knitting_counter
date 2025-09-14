@@ -138,11 +138,50 @@
             color: #333;
         }
 
-        .control-group input {
-            padding: 5px 10px;
+        .control-group input[type="number"] {
+            padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 3px;
             width: 80px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        .control-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        /* Remove spinner arrows on WebKit browsers */
+        .control-group input[type="number"]::-webkit-outer-spin-button,
+        .control-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Improve touch targets on mobile */
+        @media (max-width: 768px) {
+            .control-group input[type="number"] {
+                padding: 12px 16px;
+                font-size: 16px;
+                width: 90px;
+            }
+
+            .control-group {
+                margin-bottom: 10px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
 
         .process-btn {
@@ -221,27 +260,27 @@
             <button class="auto-detect-btn" id="autoDetectBtn" onclick="autoDetectGrid()" disabled>Auto Detect Grid</button>
             <div class="control-group">
                 <label for="gridSize">Grid Size:</label>
-                <input type="number" id="gridSize" value="20" min="5" max="100" onchange="processImage()">
+                <input type="number" id="gridSize" value="20" min="5" max="100" inputmode="numeric" pattern="[0-9]*">
             </div>
             <div class="control-group">
                 <label for="offsetX">X Offset:</label>
-                <input type="number" id="offsetX" value="0" min="-50" max="50" onchange="processImage()">
+                <input type="number" id="offsetX" value="0" min="-50" max="50" inputmode="numeric" pattern="[-0-9]*">
             </div>
             <div class="control-group">
                 <label for="offsetY">Y Offset:</label>
-                <input type="number" id="offsetY" value="0" min="-50" max="50" onchange="processImage()">
+                <input type="number" id="offsetY" value="0" min="-50" max="50" inputmode="numeric" pattern="[-0-9]*">
             </div>
             <div class="control-group">
                 <label for="tolerance">Color Tolerance:</label>
-                <input type="number" id="tolerance" value="90" min="0" max="100" onchange="processImage()">
+                <input type="number" id="tolerance" value="90" min="0" max="100" inputmode="numeric" pattern="[0-9]*">
             </div>
             <div class="control-group">
                 <label for="showAllNumbers">Show All Numbers:</label>
-                <input type="checkbox" id="showAllNumbers" onchange="processImage()">
+                <input type="checkbox" id="showAllNumbers">
             </div>
             <div class="control-group">
                 <label for="showGrid">Show Grid Overlay:</label>
-                <input type="checkbox" id="showGrid" checked onchange="processImage()">
+                <input type="checkbox" id="showGrid" checked>
             </div>
             <button class="grid-color-btn" id="gridColorBtn" onclick="randomizeGridColor()" disabled>🎨 Change Grid Color</button>
             <button class="download-btn" id="downloadBtn" onclick="downloadImage()" disabled>💾 Download Image</button>
@@ -306,8 +345,37 @@
             }
         });
 
-        // Add event listeners for grid size changes
+        // Add event listeners for grid size changes - use both input and change for mobile compatibility
         document.getElementById('gridSize').addEventListener('input', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+        document.getElementById('gridSize').addEventListener('change', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+
+        // Add event listeners for tolerance changes
+        document.getElementById('tolerance').addEventListener('input', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+        document.getElementById('tolerance').addEventListener('change', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+
+        // Add event listeners for checkbox changes
+        document.getElementById('showAllNumbers').addEventListener('change', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+        document.getElementById('showGrid').addEventListener('change', () => {
             if (originalImage) {
                 processImage();
             }
