@@ -346,6 +346,10 @@
             <p style="margin-top: 15px; color: #666; font-size: 14px;">Supported formats: JPG, PNG, GIF</p>
         </div>
 
+        <div class="canvas-container" style="position: relative;">
+            <canvas id="canvas"></canvas>
+        </div>
+
         <div class="controls">
             <button class="auto-detect-btn" id="autoDetectBtn" onclick="autoDetectGrid()" disabled>Auto Detect Grid</button>
             <div class="control-group">
@@ -392,10 +396,6 @@
             </div>
             <button class="grid-color-btn" id="gridColorBtn" onclick="randomizeGridColor()" disabled>🎨 Change Grid Color</button>
             <button class="download-btn" id="downloadBtn" onclick="downloadImage()" disabled>💾 Download Image</button>
-        </div>
-
-        <div class="canvas-container" style="position: relative;">
-            <canvas id="canvas"></canvas>
         </div>
 
         <div class="info" id="info" style="display: none;"></div>
