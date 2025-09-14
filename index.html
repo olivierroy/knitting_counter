@@ -147,32 +147,109 @@
             -moz-appearance: textfield;
         }
 
+        .control-group input[type="range"] {
+            width: 150px;
+            margin: 0 10px;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+        }
+
         .control-group input[type="checkbox"] {
             width: auto;
             margin: 0;
         }
 
-        /* Improve touch targets on mobile */
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .control-group label {
+            min-width: 120px;
+            font-weight: bold;
+        }
+
+        .control-group input[type="range"] {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Mobile adjustments */
         @media (max-width: 768px) {
-            .control-group input[type="number"] {
-                padding: 12px 16px;
-                font-size: 16px;
-                width: 90px;
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 15px;
             }
 
-            .control-group {
-                margin-bottom: 10px;
+            .control-group label {
+                min-width: auto;
+                margin-bottom: 5px;
+            }
+
+            .control-group input[type="range"] {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .control-group input[type="range"]::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+
+            .control-group input[type="range"]::-moz-range-thumb {
+                width: 24px;
+                height: 24px;
+            }
+
+            .slider-value {
+                align-self: center;
+                font-size: 18px;
+                margin-top: 5px;
             }
 
             .controls {
                 flex-direction: column;
                 align-items: stretch;
-            }
-
-            .control-group {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
             }
         }
 
@@ -273,23 +350,28 @@
             <button class="auto-detect-btn" id="autoDetectBtn" onclick="autoDetectGrid()" disabled>Auto Detect Grid</button>
             <div class="control-group">
                 <label for="gridSize">Grid Size:</label>
-                <input type="number" id="gridSize" value="20" min="5" max="100" inputmode="numeric" pattern="[0-9]*">
+                <input type="range" id="gridSizeSlider" min="5" max="100" value="20">
+                <span class="slider-value" id="gridSizeValue">20</span>
             </div>
             <div class="control-group">
                 <label for="offsetX">X Offset:</label>
-                <input type="number" id="offsetX" value="0" min="-50" max="50" inputmode="numeric" pattern="[-0-9]*">
+                <input type="range" id="offsetXSlider" min="-50" max="50" value="0">
+                <span class="slider-value" id="offsetXValue">0</span>
             </div>
             <div class="control-group">
                 <label for="offsetY">Y Offset:</label>
-                <input type="number" id="offsetY" value="0" min="-50" max="50" inputmode="numeric" pattern="[-0-9]*">
+                <input type="range" id="offsetYSlider" min="-50" max="50" value="0">
+                <span class="slider-value" id="offsetYValue">0</span>
             </div>
             <div class="control-group">
                 <label for="tolerance">Color Tolerance:</label>
-                <input type="number" id="tolerance" value="90" min="0" max="100" inputmode="numeric" pattern="[0-9]*">
+                <input type="range" id="toleranceSlider" min="0" max="100" value="90">
+                <span class="slider-value" id="toleranceValue">90</span>
             </div>
             <div class="control-group">
                 <label for="maxColors">Max Colors:</label>
-                <input type="number" id="maxColors" value="6" min="2" max="20" inputmode="numeric" pattern="[0-9]*">
+                <input type="range" id="maxColorsSlider" min="2" max="20" value="6">
+                <span class="slider-value" id="maxColorsValue">6</span>
             </div>
             <div class="control-group">
                 <label for="showAllNumbers">Show All Numbers:</label>
@@ -301,7 +383,12 @@
             </div>
             <div class="control-group">
                 <label for="showColorOverlay">Show Color Overlay:</label>
-                <input type="checkbox" id="showColorOverlay">
+                <input type="checkbox" id="showColorOverlay" checked>
+            </div>
+            <div class="control-group">
+                <label for="overlayOpacity">Overlay Opacity:</label>
+                <input type="range" id="overlayOpacitySlider" min="10" max="100" value="40">
+                <span class="slider-value" id="overlayOpacityValue">40%</span>
             </div>
             <button class="grid-color-btn" id="gridColorBtn" onclick="randomizeGridColor()" disabled>🎨 Change Grid Color</button>
             <button class="download-btn" id="downloadBtn" onclick="downloadImage()" disabled>💾 Download Image</button>
@@ -353,48 +440,6 @@
             }
         });
 
-        // Add event listeners for offset changes
-        document.getElementById('offsetX').addEventListener('input', () => {
-            if (originalImage) {
-                processImage();
-            }
-        });
-
-        document.getElementById('offsetY').addEventListener('input', () => {
-            if (originalImage) {
-                processImage();
-            }
-        });
-
-        // Add event listeners for grid size changes - use debouncing to prevent rapid updates
-        let gridSizeTimeout;
-        document.getElementById('gridSize').addEventListener('input', () => {
-            if (originalImage) {
-                clearTimeout(gridSizeTimeout);
-                gridSizeTimeout = setTimeout(() => {
-                    processImage();
-                }, 800);
-            }
-        });
-        document.getElementById('gridSize').addEventListener('change', () => {
-            if (originalImage) {
-                clearTimeout(gridSizeTimeout);
-                processImage();
-            }
-        });
-
-        // Add event listeners for tolerance changes
-        document.getElementById('tolerance').addEventListener('input', () => {
-            if (originalImage) {
-                processImage();
-            }
-        });
-        document.getElementById('tolerance').addEventListener('change', () => {
-            if (originalImage) {
-                processImage();
-            }
-        });
-
         // Add event listeners for checkbox changes
         document.getElementById('showAllNumbers').addEventListener('change', () => {
             if (originalImage) {
@@ -411,16 +456,38 @@
                 processImage();
             }
         });
-        document.getElementById('maxColors').addEventListener('input', () => {
-            if (originalImage) {
-                processImage();
-            }
-        });
-        document.getElementById('maxColors').addEventListener('change', () => {
-            if (originalImage) {
-                processImage();
-            }
-        });
+
+        // Slider event listeners
+        function setupSlider(sliderId, valueId) {
+            const slider = document.getElementById(sliderId);
+            const valueDisplay = document.getElementById(valueId);
+
+            slider.addEventListener('input', () => {
+                const value = slider.value;
+                // Special formatting for opacity (add %)
+                if (sliderId === 'overlayOpacitySlider') {
+                    valueDisplay.textContent = value + '%';
+                } else {
+                    valueDisplay.textContent = value;
+                }
+                if (originalImage) {
+                    if (sliderId === 'gridSizeSlider') {
+                        processImage();
+                    } else {
+                        processImage();
+                    }
+                }
+            });
+
+        }
+
+        // Setup sliders
+        setupSlider('gridSizeSlider', 'gridSizeValue');
+        setupSlider('offsetXSlider', 'offsetXValue');
+        setupSlider('offsetYSlider', 'offsetYValue');
+        setupSlider('toleranceSlider', 'toleranceValue');
+        setupSlider('maxColorsSlider', 'maxColorsValue');
+        setupSlider('overlayOpacitySlider', 'overlayOpacityValue');
 
         function handleFile(file) {
             if (!file.type.startsWith('image/')) {
@@ -472,7 +539,8 @@
             const gridSize = detectGridSize(data, canvas.width, canvas.height);
 
             if (gridSize > 0) {
-                document.getElementById('gridSize').value = gridSize;
+                document.getElementById('gridSizeSlider').value = gridSize;
+                document.getElementById('gridSizeValue').textContent = gridSize;
                 // Auto-process pattern after detection
                 processImage();
             } else {
@@ -529,14 +597,15 @@
         function processImage() {
             if (!originalImage) return;
 
-            const gridSize = parseInt(document.getElementById('gridSize').value);
-            const offsetX = parseInt(document.getElementById('offsetX').value);
-            const offsetY = parseInt(document.getElementById('offsetY').value);
-            const tolerance = parseInt(document.getElementById('tolerance').value);
-            const maxColors = parseInt(document.getElementById('maxColors').value);
+            const gridSize = parseInt(document.getElementById('gridSizeSlider').value);
+            const offsetX = parseInt(document.getElementById('offsetXSlider').value);
+            const offsetY = parseInt(document.getElementById('offsetYSlider').value);
+            const tolerance = parseInt(document.getElementById('toleranceSlider').value);
+            const maxColors = parseInt(document.getElementById('maxColorsSlider').value);
             const showAllNumbers = document.getElementById('showAllNumbers').checked;
             const showGrid = document.getElementById('showGrid').checked;
             const showColorOverlay = document.getElementById('showColorOverlay').checked;
+            const overlayOpacity = parseInt(document.getElementById('overlayOpacitySlider').value) / 100;
 
             // Clear canvas and redraw image
             displayOriginalImage();
@@ -598,7 +667,7 @@
 
             // Draw color overlay if enabled
             if (showColorOverlay) {
-                drawColorOverlay(patternData, gridSize);
+                drawColorOverlay(patternData, gridSize, overlayOpacity);
             }
 
             // Draw grid lines and overlays
@@ -676,8 +745,8 @@
             ctx.setLineDash([]);
         }
 
-        function drawColorOverlay(patternData, gridSize) {
-            ctx.globalAlpha = 0.4;
+        function drawColorOverlay(patternData, gridSize, opacity = 0.4) {
+            ctx.globalAlpha = opacity;
 
             patternData.forEach((row, rowIndex) => {
                 row.forEach((cell, cellIndex) => {
