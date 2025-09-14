@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knitting Pattern Counter</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧶</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .upload-section {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: border-color 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #007bff;
+        }
+
+        .upload-section.dragover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #0056b3;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .auto-detect-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .auto-detect-btn:hover {
+            background: #138496;
+        }
+
+        .grid-color-btn {
+            background: #6f42c1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .grid-color-btn:hover {
+            background: #5a359a;
+        }
+
+        .download-btn {
+            background: #fd7e14;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .download-btn:hover {
+            background: #e8650e;
+        }
+
+        .download-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .control-group input {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 80px;
+        }
+
+        .process-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .process-btn:hover {
+            background: #1e7e34;
+        }
+
+        .process-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .canvas-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .legend h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .color-sample {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #333;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧶 Knitting Pattern Counter</h1>
+
+        <div class="upload-section" id="uploadSection">
+            <p>Drop your knitting pattern image here or</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+            <input type="file" id="fileInput" accept="image/*">
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">Supported formats: JPG, PNG, GIF</p>
+        </div>
+
+        <div class="controls">
+            <button class="auto-detect-btn" id="autoDetectBtn" onclick="autoDetectGrid()" disabled>Auto Detect Grid</button>
+            <div class="control-group">
+                <label for="gridSize">Grid Size:</label>
+                <input type="number" id="gridSize" value="20" min="5" max="100" onchange="processImage()">
+            </div>
+            <div class="control-group">
+                <label for="offsetX">X Offset:</label>
+                <input type="number" id="offsetX" value="0" min="-50" max="50" onchange="processImage()">
+            </div>
+            <div class="control-group">
+                <label for="offsetY">Y Offset:</label>
+                <input type="number" id="offsetY" value="0" min="-50" max="50" onchange="processImage()">
+            </div>
+            <div class="control-group">
+                <label for="tolerance">Color Tolerance:</label>
+                <input type="number" id="tolerance" value="90" min="0" max="100" onchange="processImage()">
+            </div>
+            <div class="control-group">
+                <label for="showAllNumbers">Show All Numbers:</label>
+                <input type="checkbox" id="showAllNumbers" onchange="processImage()">
+            </div>
+            <div class="control-group">
+                <label for="showGrid">Show Grid Overlay:</label>
+                <input type="checkbox" id="showGrid" checked onchange="processImage()">
+            </div>
+            <button class="grid-color-btn" id="gridColorBtn" onclick="randomizeGridColor()" disabled>🎨 Change Grid Color</button>
+            <button class="download-btn" id="downloadBtn" onclick="downloadImage()" disabled>💾 Download Image</button>
+        </div>
+
+        <div class="canvas-container" style="position: relative;">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="info" id="info" style="display: none;"></div>
+
+        <div class="legend" id="legend" style="display: none;">
+            <h3>Pattern Legend</h3>
+            <div id="legendContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let originalImage = null;
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let fileInput = document.getElementById('fileInput');
+        let uploadSection = document.getElementById('uploadSection');
+        let gridColorBtn = document.getElementById('gridColorBtn');
+        let currentGridColor = 'rgba(255, 255, 255, 0.5)';
+
+        // Drag and drop functionality
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Add event listeners for offset changes
+        document.getElementById('offsetX').addEventListener('input', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+
+        document.getElementById('offsetY').addEventListener('input', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+
+        // Add event listeners for grid size changes
+        document.getElementById('gridSize').addEventListener('input', () => {
+            if (originalImage) {
+                processImage();
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    displayOriginalImage();
+                    document.getElementById('autoDetectBtn').disabled = false;
+                    document.getElementById('gridColorBtn').disabled = false;
+                    document.getElementById('downloadBtn').disabled = false;
+
+                    // Auto-detect grid and process pattern
+                    setTimeout(() => {
+                        autoDetectGrid();
+                    }, 100);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayOriginalImage() {
+            const maxWidth = 1800;
+            const scale = Math.min(1, maxWidth / originalImage.width);
+
+            canvas.width = originalImage.width * scale;
+            canvas.height = originalImage.height * scale;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+
+            document.getElementById('info').style.display = 'none';
+            document.getElementById('legend').style.display = 'none';
+        }
+
+        function autoDetectGrid() {
+            if (!originalImage) return;
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // Detect grid lines by looking for consistent horizontal and vertical patterns
+            const gridSize = detectGridSize(data, canvas.width, canvas.height);
+
+            if (gridSize > 0) {
+                document.getElementById('gridSize').value = gridSize;
+                // Auto-process pattern after detection
+                processImage();
+            } else {
+                // Use default grid size if detection fails
+                processImage();
+            }
+        }
+
+        function detectGridSize(data, width, height) {
+            // Sample horizontal lines to detect grid pattern
+            const sampleY = Math.floor(height * 0.1); // Sample from top 10%
+            let transitions = [];
+
+            for (let x = 1; x < width - 1; x++) {
+                const currentIndex = (sampleY * width + x) * 4;
+                const prevIndex = (sampleY * width + (x - 1)) * 4;
+
+                const currentBrightness = (data[currentIndex] + data[currentIndex + 1] + data[currentIndex + 2]) / 3;
+                const prevBrightness = (data[prevIndex] + data[prevIndex + 1] + data[prevIndex + 2]) / 3;
+
+                if (Math.abs(currentBrightness - prevBrightness) > 30) {
+                    transitions.push(x);
+                }
+            }
+
+            if (transitions.length < 3) return 0;
+
+            // Calculate most common distance between transitions
+            const distances = [];
+            for (let i = 1; i < transitions.length; i++) {
+                distances.push(transitions[i] - transitions[i - 1]);
+            }
+
+            // Find the most frequent distance (grid size)
+            const distanceMap = {};
+            distances.forEach(d => {
+                const rounded = Math.round(d);
+                distanceMap[rounded] = (distanceMap[rounded] || 0) + 1;
+            });
+
+            let maxCount = 0;
+            let detectedSize = 0;
+
+            for (const [size, count] of Object.entries(distanceMap)) {
+                if (count > maxCount && parseInt(size) > 8 && parseInt(size) < 50) {
+                    maxCount = count;
+                    detectedSize = parseInt(size);
+                }
+            }
+
+            return detectedSize;
+        }
+
+        function processImage() {
+            if (!originalImage) return;
+
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+            const offsetX = parseInt(document.getElementById('offsetX').value);
+            const offsetY = parseInt(document.getElementById('offsetY').value);
+            const tolerance = parseInt(document.getElementById('tolerance').value);
+            const showAllNumbers = document.getElementById('showAllNumbers').checked;
+            const showGrid = document.getElementById('showGrid').checked;
+
+            // Clear canvas and redraw image
+            displayOriginalImage();
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // Calculate grid dimensions accounting for offsets
+            const cols = Math.floor((canvas.width - offsetX) / gridSize);
+            const rows = Math.floor((canvas.height - offsetY) / gridSize);
+
+            let patternData = [];
+            let colorMap = new Map();
+            let colorIndex = 0;
+            let cellNumber = 1;
+
+            // Process each row - create individual cells for each grid position
+            for (let row = 0; row < rows; row++) {
+                let rowData = [];
+                let consecutiveCount = 1;
+                let currentColor = null;
+                let sequenceStart = 0;
+
+                for (let col = 0; col < cols; col++) {
+                    // Get the center pixel of the grid cell with offsets
+                    const x = Math.floor(offsetX + (col + 0.5) * gridSize);
+                    const y = Math.floor(offsetY + (row + 0.5) * gridSize);
+
+                    if (x < canvas.width && y < canvas.height) {
+                        const pixelIndex = (y * canvas.width + x) * 4;
+                        const r = data[pixelIndex];
+                        const g = data[pixelIndex + 1];
+                        const b = data[pixelIndex + 2];
+
+                        const color = `rgb(${r},${g},${b})`;
+                        const colorKey = getColorKey(r, g, b, tolerance);
+
+                        if (!colorMap.has(colorKey)) {
+                            colorMap.set(colorKey, {
+                                color: color,
+                                symbol: String.fromCharCode(65 + colorIndex),
+                                index: colorIndex++
+                            });
+                        }
+
+                        const colorInfo = colorMap.get(colorKey);
+
+                        // Check if this is the same color as the previous cell
+                        if (currentColor && isSameColor(currentColor, colorKey)) {
+                            consecutiveCount++;
+                        } else {
+                            // Start new color sequence
+                            currentColor = colorKey;
+                            consecutiveCount = 1;
+                            sequenceStart = col;
+                        }
+
+                        // Add individual cell with its position in the sequence
+                        rowData.push({
+                            color: colorInfo,
+                            x: x,
+                            y: y,
+                            consecutivePosition: consecutiveCount,
+                            cellNumber: cellNumber,
+                            col: col,
+                            row: row
+                        });
+
+                        cellNumber++;
+                    }
+                }
+
+                patternData.push(rowData);
+            }
+
+            // Draw grid lines and overlays
+            if (showGrid) {
+                drawGridLines(gridSize, cols, rows, offsetX, offsetY);
+            }
+            drawOverlay(patternData, gridSize, showAllNumbers);
+
+            // Show info and legend
+            showPatternInfo(patternData, colorMap);
+        }
+
+        function getColorKey(r, g, b, tolerance) {
+            // Quantize colors based on tolerance
+            const step = tolerance * 2;
+            const qR = Math.round(r / step) * step;
+            const qG = Math.round(g / step) * step;
+            const qB = Math.round(b / step) * step;
+            return `${qR},${qG},${qB}`;
+        }
+
+        function isSameColor(color1, color2) {
+            return color1 === color2;
+        }
+
+        function randomizeGridColor() {
+            // Generate a bright, visible color with good opacity
+            const colors = [
+                'rgba(255, 0, 0, 0.7)',     // Red
+                'rgba(0, 255, 0, 0.7)',     // Green
+                'rgba(0, 0, 255, 0.7)',     // Blue
+                'rgba(255, 255, 0, 0.7)',   // Yellow
+                'rgba(255, 0, 255, 0.7)',   // Magenta
+                'rgba(0, 255, 255, 0.7)',   // Cyan
+                'rgba(255, 165, 0, 0.7)',   // Orange
+                'rgba(128, 0, 128, 0.7)',   // Purple
+                'rgba(255, 192, 203, 0.7)', // Pink
+                'rgba(0, 128, 0, 0.7)',     // Dark Green
+                'rgba(255, 255, 255, 0.8)', // White
+                'rgba(0, 0, 0, 0.8)'        // Black
+            ];
+
+            // Pick a random color
+            currentGridColor = colors[Math.floor(Math.random() * colors.length)];
+
+            // Reprocess the image if it exists (regardless of button state)
+            if (originalImage) {
+                processImage();
+            }
+        }
+
+        function drawGridLines(gridSize, cols, rows, offsetX, offsetY) {
+            ctx.strokeStyle = currentGridColor;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+
+            // Draw vertical lines
+            for (let col = 0; col <= cols; col++) {
+                const x = offsetX + col * gridSize;
+                ctx.beginPath();
+                ctx.moveTo(x, offsetY);
+                ctx.lineTo(x, offsetY + rows * gridSize);
+                ctx.stroke();
+            }
+
+            // Draw horizontal lines
+            for (let row = 0; row <= rows; row++) {
+                const y = offsetY + row * gridSize;
+                ctx.beginPath();
+                ctx.moveTo(offsetX, y);
+                ctx.lineTo(offsetX + cols * gridSize, y);
+                ctx.stroke();
+            }
+
+            ctx.setLineDash([]);
+        }
+
+        function drawOverlay(patternData, gridSize, showAllNumbers) {
+            const fontSize = Math.min(gridSize * 0.4, 12);
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'black';
+
+            patternData.forEach((row, rowIndex) => {
+                row.forEach((cell, cellIndex) => {
+                    if (showAllNumbers) {
+                        // Show cell number in top part and consecutive position in bottom part
+                        const cellText = cell.cellNumber.toString();
+                        const textY = cell.y - gridSize * 0.15;
+                        ctx.strokeText(cellText, cell.x, textY);
+                        ctx.fillText(cellText, cell.x, textY);
+
+                        // Show consecutive position (1, 2, 3...) in bottom part
+                        const consecutiveText = cell.consecutivePosition.toString();
+                        const countY = cell.y + gridSize * 0.15;
+                        ctx.font = `bold ${fontSize * 0.8}px Arial`;
+                        ctx.strokeText(consecutiveText, cell.x, countY);
+                        ctx.fillText(consecutiveText, cell.x, countY);
+                        ctx.font = `bold ${fontSize}px Arial`; // Reset font size
+                    } else {
+                        // Show only consecutive position (1, 2, 3...)
+                        const text = cell.consecutivePosition.toString();
+                        ctx.strokeText(text, cell.x, cell.y);
+                        ctx.fillText(text, cell.x, cell.y);
+                    }
+                });
+            });
+        }
+
+        function showPatternInfo(patternData, colorMap) {
+            const info = document.getElementById('info');
+            const legend = document.getElementById('legend');
+            const legendContent = document.getElementById('legendContent');
+
+            let totalStitches = 0;
+            let patternText = '';
+
+            patternData.forEach((row, rowIndex) => {
+                patternText += `Row ${rowIndex + 1}: `;
+                let currentColor = null;
+                let consecutiveCount = 0;
+                let rowStitches = 0;
+
+                row.forEach((cell, cellIndex) => {
+                    rowStitches++;
+
+                    if (currentColor === null || currentColor !== cell.color.symbol) {
+                        // New color sequence
+                        if (currentColor !== null) {
+                            patternText += `${currentColor}${consecutiveCount > 1 ? consecutiveCount : ''}, `;
+                        }
+                        currentColor = cell.color.symbol;
+                        consecutiveCount = 1;
+                    } else {
+                        consecutiveCount++;
+                    }
+                });
+
+                // Add the last color sequence for the row
+                if (currentColor !== null) {
+                    patternText += `${currentColor}${consecutiveCount > 1 ? consecutiveCount : ''}`;
+                }
+
+                totalStitches += rowStitches;
+                patternText += '\n';
+            });
+
+            info.innerHTML = `
+                <strong>Pattern Information:</strong><br>
+                Rows: ${patternData.length}<br>
+                Columns: ${patternData[0].length}<br>
+                Total Stitches: ${totalStitches}<br>
+                Colors Used: ${colorMap.size}<br><br>
+                <strong>Pattern:</strong><br>
+                <pre>${patternText}</pre>
+            `;
+
+            // Create legend
+            let legendHTML = '';
+            colorMap.forEach((colorInfo) => {
+                legendHTML += `
+                    <div style="margin-bottom: 5px;">
+                        <span class="color-sample" style="background-color: ${colorInfo.color};"></span>
+                        <strong>${colorInfo.symbol}</strong> - ${colorInfo.color}
+                    </div>
+                `;
+            });
+
+            legendContent.innerHTML = legendHTML;
+
+            info.style.display = 'block';
+            legend.style.display = 'block';
+        }
+
+        function downloadImage() {
+            if (!originalImage) return;
+
+            // Create a temporary link element
+            const link = document.createElement('a');
+
+            // Convert canvas to blob and download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = 'knitting-pattern-numbered.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+    </script>
+</body>
+</html>
