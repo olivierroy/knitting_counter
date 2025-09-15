@@ -193,12 +193,92 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
         }
 
         .control-group label {
             min-width: 120px;
             font-weight: bold;
+        }
+
+        .control-group small {
+            color: #6c757d;
+            font-size: 0.85em;
+            font-style: italic;
+            min-width: 140px;
+        }
+
+        .controls-section {
+            margin: 30px 0 20px 0;
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .controls-section h3 {
+            margin-bottom: 10px;
+            color: #1976d2;
+            font-size: 1.3em;
+        }
+
+        .controls-section p {
+            color: #424242;
+            margin: 0;
+        }
+
+        /* Results Explanation Section */
+        .results-explanation {
+            margin: 30px 0;
+            padding: 25px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .results-explanation h3 {
+            margin-bottom: 20px;
+            color: #2e7d32;
+            font-size: 1.4em;
+            text-align: center;
+        }
+
+        .explanation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .explanation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+        }
+
+        .explanation-icon {
+            font-size: 2em;
+            flex-shrink: 0;
+        }
+
+        .explanation-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #2e7d32;
+            font-size: 1.1em;
+        }
+
+        .explanation-item p {
+            margin: 0;
+            color: #424242;
+            font-size: 0.95em;
+            line-height: 1.4;
         }
 
         .control-group input[type="range"] {
@@ -215,41 +295,184 @@
 
         /* Mobile adjustments */
         @media (max-width: 768px) {
-            .control-group {
-                flex-direction: column;
-                align-items: flex-start;
-                margin-bottom: 15px;
+            body {
+                padding: 10px;
             }
 
-            .control-group label {
-                min-width: auto;
+            .welcome-section {
+                padding: 25px 15px;
+                margin-bottom: 20px;
+            }
+
+            .welcome-section h2 {
+                font-size: 1.4em;
+                margin-bottom: 10px;
+            }
+
+            .welcome-section > p {
+                font-size: 1em;
+                margin-bottom: 20px;
+            }
+
+            .how-it-works {
+                padding: 15px;
+            }
+
+            .steps {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .step {
+                text-align: center;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .step-content {
+                text-align: center;
+            }
+
+            .step-image svg {
+                width: 80px;
+                height: 53px;
+            }
+
+            .step-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1em;
+            }
+
+            .upload-section {
+                padding: 25px 15px;
+                margin-bottom: 20px;
+            }
+
+            .controls-section {
+                margin: 15px 0 10px 0;
+                padding: 15px;
+            }
+
+            .controls-section h3 {
+                font-size: 1.1em;
+                margin-bottom: 8px;
+            }
+
+            .control-group {
+                margin-bottom: 10px;
+                padding: 8px;
+            }
+
+            /* Compact checkbox layout */
+            .control-group:has(input[type="checkbox"]) {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
                 margin-bottom: 5px;
+                padding: 6px 8px;
+            }
+
+            .control-group:has(input[type="checkbox"]) label {
+                min-width: auto;
+                margin-bottom: 0;
+                flex: 1;
+                font-size: 0.9em;
+            }
+
+            .control-group:has(input[type="checkbox"]) small {
+                display: none; /* Hide explanatory text for checkboxes on mobile */
+            }
+
+            /* Slider controls - keep vertical but more compact */
+            .control-group:has(input[type="range"]) {
+                flex-direction: column;
+                align-items: stretch;
+                margin-bottom: 8px;
+                padding: 6px 8px;
+            }
+
+            .control-group:has(input[type="range"]) label {
+                min-width: auto;
+                margin-bottom: 3px;
+                font-size: 0.9em;
             }
 
             .control-group input[type="range"] {
                 width: 100%;
                 min-width: auto;
+                margin: 0;
             }
 
             .control-group input[type="range"]::-webkit-slider-thumb {
-                width: 24px;
-                height: 24px;
+                width: 20px;
+                height: 20px;
             }
 
             .control-group input[type="range"]::-moz-range-thumb {
-                width: 24px;
-                height: 24px;
+                width: 20px;
+                height: 20px;
             }
 
             .slider-value {
                 align-self: center;
-                font-size: 18px;
-                margin-top: 5px;
+                font-size: 16px;
+                margin-top: 3px;
+            }
+
+            .control-group:has(input[type="range"]) small {
+                min-width: auto;
+                text-align: center;
+                margin-top: 3px;
+                font-size: 0.8em;
             }
 
             .controls {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            .results-explanation {
+                margin: 15px 0;
+                padding: 15px;
+            }
+
+            .results-explanation h3 {
+                font-size: 1.2em;
+                margin-bottom: 12px;
+            }
+
+            .explanation-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .explanation-item {
+                flex-direction: row;
+                text-align: left;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .explanation-icon {
+                font-size: 1.5em;
+            }
+
+            .explanation-item strong {
+                font-size: 1em;
+                margin-bottom: 3px;
+            }
+
+            .explanation-item p {
+                font-size: 0.85em;
+                line-height: 1.3;
+            }
+
+            /* Compact button layout */
+            .auto-detect-btn, .grid-color-btn, .download-btn {
+                padding: 8px 15px;
+                font-size: 0.9em;
+                margin-bottom: 8px;
             }
         }
 
@@ -333,69 +556,351 @@
             border: 1px solid #333;
             vertical-align: middle;
         }
+
+        /* Welcome Section Styles */
+        .welcome-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .welcome-section h2 {
+            margin-bottom: 15px;
+            font-size: 2em;
+            font-weight: 300;
+        }
+
+        .welcome-section > p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .how-it-works {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .how-it-works h3 {
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 200px;
+            text-align: left;
+        }
+
+        .step-number {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .step-content strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .step-content p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .step-image {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .step-image svg {
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Enhanced Upload Section */
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .upload-section h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1.4em;
+        }
+
+        .upload-section p {
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* Responsive adjustments for welcome section */
+        @media (max-width: 768px) {
+            .welcome-section {
+                padding: 30px 20px;
+            }
+
+            .welcome-section h2 {
+                font-size: 1.6em;
+            }
+
+            .welcome-section > p {
+                font-size: 1.1em;
+            }
+
+            .steps {
+                flex-direction: column;
+            }
+
+            .step {
+                text-align: center;
+                flex-direction: column;
+            }
+
+            .step-content {
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🧶 Knitting Pattern Counter</h1>
 
+        <div class="welcome-section">
+            <h2>Welcome to your digital knitting assistant!</h2>
+            <p>Transform your knitting pattern images into easy-to-follow numbered charts. Perfect for complex colorwork, fair isle patterns, and intricate designs.</p>
+
+            <div class="how-it-works">
+                <h3>📋 How it works:</h3>
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <strong>Upload your pattern</strong>
+                            <p>Choose any knitting chart image (JPG, PNG, GIF)</p>
+                            <div class="step-image">
+                                <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="120" height="80" rx="8" fill="#f8f9fa" stroke="#4a90e2" stroke-width="2" stroke-dasharray="5 3"/>
+                                    <!-- Image/document icon -->
+                                    <rect x="35" y="20" width="30" height="38" rx="2" fill="#e9ecef" stroke="#6c757d" stroke-width="1"/>
+                                    <rect x="35" y="20" width="30" height="10" fill="#4a90e2"/>
+                                    <!-- Pattern squares inside document -->
+                                    <rect x="40" y="35" width="4" height="4" fill="#fd79a8"/>
+                                    <rect x="45" y="35" width="4" height="4" fill="#00b894"/>
+                                    <rect x="50" y="35" width="4" height="4" fill="#fd79a8"/>
+                                    <rect x="55" y="35" width="4" height="4" fill="#00b894"/>
+                                    <rect x="40" y="40" width="4" height="4" fill="#00b894"/>
+                                    <rect x="45" y="40" width="4" height="4" fill="#fd79a8"/>
+                                    <rect x="50" y="40" width="4" height="4" fill="#00b894"/>
+                                    <rect x="55" y="40" width="4" height="4" fill="#fd79a8"/>
+                                    <!-- Upload arrow pointing to document -->
+                                    <path d="M75 30L85 40L75 50M85 40H70" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <text x="60" y="70" text-anchor="middle" fill="#6c757d" font-size="8" font-family="Arial, sans-serif">Upload knitting pattern</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <strong>Auto-detection</strong>
+                            <p>The app automatically detects your pattern grid and colors</p>
+                            <div class="step-image">
+                                <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="120" height="80" rx="4" fill="#ffeaa7"/>
+                                    <!-- Grid pattern -->
+                                    <defs>
+                                        <pattern id="grid" width="15" height="15" patternUnits="userSpaceOnUse">
+                                            <path d="M 15 0 L 0 0 0 15" fill="none" stroke="#74b9ff" stroke-width="1"/>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="120" height="80" fill="url(#grid)" opacity="0.5"/>
+                                    <!-- Color squares -->
+                                    <rect x="15" y="15" width="12" height="12" fill="#fd79a8"/>
+                                    <rect x="30" y="15" width="12" height="12" fill="#00b894"/>
+                                    <rect x="45" y="15" width="12" height="12" fill="#fd79a8"/>
+                                    <rect x="15" y="30" width="12" height="12" fill="#00b894"/>
+                                    <rect x="30" y="30" width="12" height="12" fill="#fd79a8"/>
+                                    <rect x="45" y="30" width="12" height="12" fill="#00b894"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <strong>Get numbered chart</strong>
+                            <p>Each stitch gets numbered for easy counting and tracking</p>
+                            <div class="step-image">
+                                <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="120" height="80" rx="4" fill="#dff6dd"/>
+                                    <!-- Grid with numbers showing consecutive counting within same color -->
+                                    <rect x="15" y="15" width="15" height="15" fill="#fd79a8" stroke="#333" stroke-width="1"/>
+                                    <rect x="30" y="15" width="15" height="15" fill="#fd79a8" stroke="#333" stroke-width="1"/>
+                                    <rect x="45" y="15" width="15" height="15" fill="#00b894" stroke="#333" stroke-width="1"/>
+                                    <rect x="60" y="15" width="15" height="15" fill="#00b894" stroke="#333" stroke-width="1"/>
+                                    <rect x="15" y="30" width="15" height="15" fill="#00b894" stroke="#333" stroke-width="1"/>
+                                    <rect x="30" y="30" width="15" height="15" fill="#fd79a8" stroke="#333" stroke-width="1"/>
+                                    <rect x="45" y="30" width="15" height="15" fill="#fd79a8" stroke="#333" stroke-width="1"/>
+                                    <rect x="60" y="30" width="15" height="15" fill="#fd79a8" stroke="#333" stroke-width="1"/>
+                                    <!-- Numbers showing consecutive counting within same colors -->
+                                    <text x="22.5" y="25" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
+                                    <text x="37.5" y="25" text-anchor="middle" fill="white" font-size="9" font-weight="bold">2</text>
+                                    <text x="52.5" y="25" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
+                                    <text x="67.5" y="25" text-anchor="middle" fill="white" font-size="9" font-weight="bold">2</text>
+                                    <text x="22.5" y="40" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
+                                    <text x="37.5" y="40" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
+                                    <text x="52.5" y="40" text-anchor="middle" fill="white" font-size="9" font-weight="bold">2</text>
+                                    <text x="67.5" y="40" text-anchor="middle" fill="white" font-size="9" font-weight="bold">3</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="upload-section" id="uploadSection">
-            <p>Drop your knitting pattern image here or</p>
+            <div class="upload-icon">📁</div>
+            <h3>Upload Your Knitting Pattern</h3>
+            <p>Drop your knitting pattern image here or click to browse</p>
             <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
             <input type="file" id="fileInput" accept="image/*">
-            <p style="margin-top: 15px; color: #666; font-size: 14px;">Supported formats: JPG, PNG, GIF</p>
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                <strong>Supported formats:</strong> JPG, PNG, GIF<br>
+                <strong>Best results with:</strong> Clear, high-contrast knitting charts
+            </p>
         </div>
 
         <div class="canvas-container" style="position: relative;">
             <canvas id="canvas"></canvas>
         </div>
 
+        <div class="controls-section" style="display: none;" id="controlsSection">
+            <h3>🎛️ Fine-tune Your Pattern</h3>
+            <p>Adjust these settings if the automatic detection needs tweaking:</p>
+        </div>
+
         <div class="controls">
-            <button class="auto-detect-btn" id="autoDetectBtn" onclick="autoDetectGrid()" disabled>Auto Detect Grid</button>
-            <div class="control-group">
+            <button class="auto-detect-btn" id="autoDetectBtn" onclick="autoDetectGrid()" disabled>🔍 Auto Detect Grid</button>
+            <div class="control-group" title="Adjust the size of each stitch grid square">
                 <label for="gridSize">Grid Size:</label>
                 <input type="range" id="gridSizeSlider" min="5" max="100" value="20">
                 <span class="slider-value" id="gridSizeValue">20</span>
+                <small>Size of each stitch square</small>
             </div>
-            <div class="control-group">
+            <div class="control-group" title="Move the grid left or right to align with your pattern">
                 <label for="offsetX">X Offset:</label>
                 <input type="range" id="offsetXSlider" min="-50" max="50" value="0">
                 <span class="slider-value" id="offsetXValue">0</span>
+                <small>Shift grid horizontally</small>
             </div>
-            <div class="control-group">
+            <div class="control-group" title="Move the grid up or down to align with your pattern">
                 <label for="offsetY">Y Offset:</label>
                 <input type="range" id="offsetYSlider" min="-50" max="50" value="0">
                 <span class="slider-value" id="offsetYValue">0</span>
+                <small>Shift grid vertically</small>
             </div>
-            <div class="control-group">
-                <label for="tolerance">Color Tolerance:</label>
+            <div class="control-group" title="How similar colors should be grouped together">
+                <label for="tolerance">Color Grouping:</label>
                 <input type="range" id="toleranceSlider" min="0" max="100" value="90">
                 <span class="slider-value" id="toleranceValue">90</span>
+                <small>Group similar colors together</small>
             </div>
-            <div class="control-group">
+            <div class="control-group" title="Maximum number of different colors to detect in your pattern">
                 <label for="maxColors">Max Colors:</label>
                 <input type="range" id="maxColorsSlider" min="2" max="20" value="6">
                 <span class="slider-value" id="maxColorsValue">6</span>
+                <small>Limit color detection</small>
             </div>
-            <div class="control-group">
-                <label for="showAllNumbers">Show All Numbers:</label>
-                <input type="checkbox" id="showAllNumbers">
+            <div class="control-group" title="Show both cell numbers and stitch counts">
+                <label for="showCellNumbers">Show Cell Numbers:</label>
+                <input type="checkbox" id="showCellNumbers">
+                <small>Display cell numbers + stitch counts</small>
             </div>
-            <div class="control-group">
+            <div class="control-group" title="Show the grid lines overlay">
                 <label for="showGrid">Show Grid Overlay:</label>
                 <input type="checkbox" id="showGrid" checked>
+                <small>Display grid lines</small>
             </div>
-            <div class="control-group">
+            <div class="control-group" title="Show color overlay to highlight different yarn colors">
                 <label for="showColorOverlay">Show Color Overlay:</label>
                 <input type="checkbox" id="showColorOverlay" checked>
+                <small>Highlight different colors</small>
             </div>
-            <div class="control-group">
+            <div class="control-group" title="Control transparency of the color overlay">
                 <label for="overlayOpacity">Overlay Opacity:</label>
                 <input type="range" id="overlayOpacitySlider" min="10" max="100" value="40">
                 <span class="slider-value" id="overlayOpacityValue">40%</span>
+                <small>Color overlay transparency</small>
             </div>
             <button class="grid-color-btn" id="gridColorBtn" onclick="randomizeGridColor()" disabled>🎨 Change Grid Color</button>
             <button class="download-btn" id="downloadBtn" onclick="downloadImage()" disabled>💾 Download Image</button>
+        </div>
+
+        <div class="results-explanation" id="resultsExplanation" style="display: none;">
+            <h3>🎯 Your Pattern is Ready!</h3>
+            <div class="explanation-grid">
+                <div class="explanation-item">
+                    <div class="explanation-icon">📊</div>
+                    <div>
+                        <strong>Pattern Information</strong>
+                        <p>Shows rows, columns, total stitches, and colors used in your pattern</p>
+                    </div>
+                </div>
+                <div class="explanation-item">
+                    <div class="explanation-icon">🎨</div>
+                    <div>
+                        <strong>Pattern Legend</strong>
+                        <p>Each color gets a letter (A, B, C...) to make following the pattern easy</p>
+                    </div>
+                </div>
+                <div class="explanation-item">
+                    <div class="explanation-icon">🔢</div>
+                    <div>
+                        <strong>Row Instructions</strong>
+                        <p>Follow row by row - "A3, B2" means 3 stitches of color A, then 2 stitches of color B</p>
+                    </div>
+                </div>
+                <div class="explanation-item">
+                    <div class="explanation-icon">💾</div>
+                    <div>
+                        <strong>Download Your Chart</strong>
+                        <p>Save the numbered chart as an image to reference while knitting</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="info" id="info" style="display: none;"></div>
@@ -403,6 +908,10 @@
         <div class="legend" id="legend" style="display: none;">
             <h3>Pattern Legend</h3>
             <div id="legendContent"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px;">
+            Contact: <a href="mailto:contact@olivierroy.dev" style="color: #007bff; text-decoration: none;">contact@olivierroy.dev</a>
         </div>
     </div>
 
@@ -441,7 +950,7 @@
         });
 
         // Add event listeners for checkbox changes
-        document.getElementById('showAllNumbers').addEventListener('change', () => {
+        document.getElementById('showCellNumbers').addEventListener('change', () => {
             if (originalImage) {
                 processImage();
             }
@@ -504,6 +1013,9 @@
                     document.getElementById('autoDetectBtn').disabled = false;
                     document.getElementById('gridColorBtn').disabled = false;
                     document.getElementById('downloadBtn').disabled = false;
+
+                    // Show controls section
+                    document.getElementById('controlsSection').style.display = 'block';
 
                     // Auto-detect grid and process pattern
                     setTimeout(() => {
@@ -602,7 +1114,7 @@
             const offsetY = parseInt(document.getElementById('offsetYSlider').value);
             const tolerance = parseInt(document.getElementById('toleranceSlider').value);
             const maxColors = parseInt(document.getElementById('maxColorsSlider').value);
-            const showAllNumbers = document.getElementById('showAllNumbers').checked;
+            const showCellNumbers = document.getElementById('showCellNumbers').checked;
             const showGrid = document.getElementById('showGrid').checked;
             const showColorOverlay = document.getElementById('showColorOverlay').checked;
             const overlayOpacity = parseInt(document.getElementById('overlayOpacitySlider').value) / 100;
@@ -674,10 +1186,13 @@
             if (showGrid) {
                 drawGridLines(gridSize, cols, rows, offsetX, offsetY);
             }
-            drawOverlay(patternData, gridSize, showAllNumbers);
+            drawOverlay(patternData, gridSize, showCellNumbers);
 
             // Show info and legend
             showPatternInfo(patternData, colorMap);
+
+            // Show results explanation
+            document.getElementById('resultsExplanation').style.display = 'block';
         }
 
         function getColorKey(r, g, b, tolerance) {
@@ -880,7 +1395,7 @@
             return patternData;
         }
 
-        function drawOverlay(patternData, gridSize, showAllNumbers) {
+        function drawOverlay(patternData, gridSize, showCellNumbers) {
             const fontSize = Math.min(gridSize * 0.4, 12);
             ctx.font = `bold ${fontSize}px Arial`;
             ctx.textAlign = 'center';
@@ -891,7 +1406,7 @@
 
             patternData.forEach((row, rowIndex) => {
                 row.forEach((cell, cellIndex) => {
-                    if (showAllNumbers) {
+                    if (showCellNumbers) {
                         // Show cell number in top part and consecutive position in bottom part
                         const cellText = cell.cellNumber.toString();
                         const textY = cell.y - gridSize * 0.15;
