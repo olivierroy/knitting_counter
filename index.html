@@ -193,7 +193,6 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 15px;
             padding: 10px;
             background: #f8f9fa;
             border-radius: 8px;
@@ -557,6 +556,85 @@
             vertical-align: middle;
         }
 
+        .stitch-number-input {
+            width: 90px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .color-replacement {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--background-card);
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+        }
+
+        .color-replacement h3 {
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .color-replacement p {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        .color-replacement-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .color-replacement-item:last-child {
+            border-bottom: none;
+        }
+
+        .color-preview-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-preview-group small {
+            color: var(--text-secondary);
+            display: block;
+        }
+
+        .color-override-input {
+            min-width: 70px;
+            height: 36px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .reset-color-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reset-color-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .reset-color-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Welcome Section Styles */
         .welcome-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -814,11 +892,23 @@
 
         <div class="controls">
             <button class="auto-detect-btn" id="autoDetectBtn" onclick="autoDetectGrid()" disabled>🔍 Auto Detect Grid</button>
-            <div class="control-group" title="Adjust the size of each stitch grid square">
-                <label for="gridSize">Grid Size:</label>
-                <input type="range" id="gridSizeSlider" min="5" max="100" value="20">
-                <span class="slider-value" id="gridSizeValue">20</span>
-                <small>Size of each stitch square</small>
+            <div class="control-group" title="How many stitches should appear across your pattern">
+                <label for="stitchCount">Stitch Count:</label>
+                <input type="range" id="stitchCountSlider" min="5" max="200" value="80">
+                <input type="number" id="stitchCountValue" class="stitch-number-input" min="5" max="200" value="80">
+                <small>Number of stitches across</small>
+            </div>
+            <div class="control-group" title="Maximum number of different colors to detect in your pattern">
+                <label for="maxColors">Max Colors:</label>
+                <input type="range" id="maxColorsSlider" min="2" max="15" value="5">
+                <span class="slider-value" id="maxColorsValue">5</span>
+                <small>Limit color detection</small>
+            </div>
+           <div class="control-group" title="Control transparency of the color overlay">
+                <label for="overlayOpacity">Overlay Opacity:</label>
+                <input type="range" id="overlayOpacitySlider" min="10" max="100" value="60">
+                <span class="slider-value" id="overlayOpacityValue">60%</span>
+                <small>Color overlay transparency</small>
             </div>
             <div class="control-group" title="Move the grid left or right to align with your pattern">
                 <label for="offsetX">X Offset:</label>
@@ -838,12 +928,6 @@
                 <span class="slider-value" id="toleranceValue">60</span>
                 <small>Group similar colors together</small>
             </div>
-            <div class="control-group" title="Maximum number of different colors to detect in your pattern">
-                <label for="maxColors">Max Colors:</label>
-                <input type="range" id="maxColorsSlider" min="2" max="20" value="6">
-                <span class="slider-value" id="maxColorsValue">6</span>
-                <small>Limit color detection</small>
-            </div>
             <div class="control-group" title="Show both cell numbers and stitch counts">
                 <label for="showCellNumbers">Show Cell Numbers:</label>
                 <input type="checkbox" id="showCellNumbers">
@@ -858,12 +942,6 @@
                 <label for="showColorOverlay">Show Color Overlay:</label>
                 <input type="checkbox" id="showColorOverlay" checked>
                 <small>Highlight different colors</small>
-            </div>
-            <div class="control-group" title="Control transparency of the color overlay">
-                <label for="overlayOpacity">Overlay Opacity:</label>
-                <input type="range" id="overlayOpacitySlider" min="10" max="100" value="40">
-                <span class="slider-value" id="overlayOpacityValue">40%</span>
-                <small>Color overlay transparency</small>
             </div>
             <button class="grid-color-btn" id="gridColorBtn" onclick="randomizeGridColor()" disabled>🎨 Change Grid Color</button>
             <button class="download-btn" id="downloadBtn" onclick="downloadImage()" disabled>💾 Download Image</button>
@@ -910,6 +988,12 @@
             <div id="legendContent"></div>
         </div>
 
+        <div class="color-replacement" id="colorReplacement" style="display: none;">
+            <h3>Replace Detected Colors</h3>
+            <p>Match each detected color with the yarn you plan to use. Changes update the overlay, legend, and pattern details.</p>
+            <div id="colorReplacementContent"></div>
+        </div>
+
         <div style="text-align: center; margin-top: 30px; padding: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px;">
             Contact: <a href="mailto:contact@olivierroy.dev" style="color: #007bff; text-decoration: none;">contact@olivierroy.dev</a>
         </div>
@@ -923,6 +1007,8 @@
         let uploadSection = document.getElementById('uploadSection');
         let gridColorBtn = document.getElementById('gridColorBtn');
         let currentGridColor = 'rgba(255, 255, 255, 0.5)';
+        const stitchSlider = document.getElementById('stitchCountSlider');
+        const stitchInput = document.getElementById('stitchCountValue');
         let colorReplacementSection = document.getElementById('colorReplacement');
         let colorReplacementContent = document.getElementById('colorReplacementContent');
         let customColorOverrides = {};
@@ -979,27 +1065,56 @@
                 // Special formatting for opacity (add %)
                 if (sliderId === 'overlayOpacitySlider') {
                     valueDisplay.textContent = value + '%';
+                } else if (sliderId === 'stitchCountSlider') {
+                    setStitchCountValue(value);
                 } else {
                     valueDisplay.textContent = value;
                 }
                 if (originalImage) {
-                    if (sliderId === 'gridSizeSlider') {
-                        processImage();
-                    } else {
-                        processImage();
-                    }
+                    processImage();
                 }
             });
 
         }
 
+        function clampStitchCountValue(value) {
+            const min = parseInt(stitchSlider?.min || '5', 10);
+            const max = parseInt(stitchSlider?.max || '600', 10);
+            let numeric = parseInt(value, 10);
+            if (isNaN(numeric)) {
+                numeric = min;
+            }
+            return Math.max(min, Math.min(max, numeric));
+        }
+
+        function setStitchCountValue(value) {
+            const normalized = clampStitchCountValue(value);
+            if (stitchSlider) {
+                stitchSlider.value = normalized;
+            }
+            if (stitchInput) {
+                stitchInput.value = normalized;
+            }
+            return normalized;
+        }
+
         // Setup sliders
-        setupSlider('gridSizeSlider', 'gridSizeValue');
+        setupSlider('stitchCountSlider', 'stitchCountValue');
         setupSlider('offsetXSlider', 'offsetXValue');
         setupSlider('offsetYSlider', 'offsetYValue');
         setupSlider('toleranceSlider', 'toleranceValue');
         setupSlider('maxColorsSlider', 'maxColorsValue');
         setupSlider('overlayOpacitySlider', 'overlayOpacityValue');
+
+        if (stitchSlider && stitchInput) {
+            stitchInput.addEventListener('change', () => {
+                setStitchCountValue(stitchInput.value);
+                if (originalImage) {
+                    processImage();
+                }
+            });
+            setStitchCountValue(stitchSlider.value);
+        }
 
         if (colorReplacementContent) {
             colorReplacementContent.addEventListener('change', (event) => {
@@ -1079,17 +1194,18 @@
             const data = imageData.data;
 
             // Detect grid lines by looking for consistent horizontal and vertical patterns
-            const gridSize = detectGridSize(data, canvas.width, canvas.height);
+            const detectedGridSize = detectGridSize(data, canvas.width, canvas.height);
 
-            if (gridSize > 0) {
-                document.getElementById('gridSizeSlider').value = gridSize;
-                document.getElementById('gridSizeValue').textContent = gridSize;
-                // Auto-process pattern after detection
-                processImage();
-            } else {
-                // Use default grid size if detection fails
-                processImage();
+            let stitchCount = parseInt(stitchSlider?.value, 10) || 80;
+
+            if (detectedGridSize > 0) {
+                const offsetX = parseInt(document.getElementById('offsetXSlider').value);
+                const effectiveWidth = Math.max(1, canvas.width - offsetX);
+                stitchCount = Math.round(effectiveWidth / detectedGridSize);
             }
+
+            setStitchCountValue(stitchCount);
+            processImage();
         }
 
         function detectGridSize(data, width, height) {
@@ -1140,7 +1256,7 @@
         function processImage() {
             if (!originalImage) return;
 
-            const gridSize = parseInt(document.getElementById('gridSizeSlider').value);
+            const stitchCount = parseInt(stitchSlider?.value, 10) || 80;
             const offsetX = parseInt(document.getElementById('offsetXSlider').value);
             const offsetY = parseInt(document.getElementById('offsetYSlider').value);
             const tolerance = parseInt(document.getElementById('toleranceSlider').value);
@@ -1157,8 +1273,10 @@
             const data = imageData.data;
 
             // Calculate grid dimensions accounting for offsets
-            const cols = Math.floor((canvas.width - offsetX) / gridSize);
-            const rows = Math.floor((canvas.height - offsetY) / gridSize);
+            const effectiveWidth = Math.max(1, canvas.width - offsetX);
+            const gridSize = Math.max(1, effectiveWidth / Math.max(1, stitchCount));
+            const cols = Math.max(1, stitchCount);
+            const rows = Math.max(1, Math.floor((canvas.height - offsetY) / gridSize));
 
             let patternData = [];
             let allCellColors = [];
@@ -1299,7 +1417,7 @@
         function performColorClustering(cellColors, maxColors, toleranceValue) {
             if (cellColors.length === 0) return new Map();
 
-            const clusterCount = Math.max(1, Math.min(maxColors, cellColors.length));
+            const clusterCount = Math.max(1, Math.min(maxColors * 2, cellColors.length));
             const clusters = [];
             for (let i = 0; i < clusterCount; i++) {
                 const seedIndex = Math.floor((i * cellColors.length) / clusterCount);
@@ -1397,10 +1515,68 @@
         }
 
         function groupPaletteColors(palette, toleranceValue, maxColors) {
-            const toleranceDistance = calculateToleranceDistance(toleranceValue, maxColors);
-            const colorGroups = [];
+            const activePalette = palette.filter(entry => entry.count > 0);
+            if (activePalette.length === 0) {
+                return { colorMap: new Map(), uniqueColors: [], paletteGroupIndexes: [] };
+            }
 
-            const orderedPalette = palette.slice().sort((a, b) => b.count - a.count);
+            const targetColors = Math.min(maxColors, activePalette.length);
+            const minTolerance = 2;
+            let toleranceDistance = calculateToleranceDistance(toleranceValue, maxColors);
+            let colorGroups = buildColorGroups(activePalette, toleranceDistance);
+
+            while (colorGroups.length < targetColors && toleranceDistance > minTolerance) {
+                const nextTolerance = Math.max(minTolerance, toleranceDistance * 0.75);
+                if (nextTolerance === toleranceDistance) {
+                    break;
+                }
+                toleranceDistance = nextTolerance;
+                colorGroups = buildColorGroups(activePalette, toleranceDistance);
+            }
+
+            colorGroups = splitGroupsForTarget(colorGroups, activePalette, targetColors);
+
+            if (colorGroups.length > targetColors) {
+                colorGroups = mergeSmallestGroups(colorGroups, targetColors);
+            }
+
+            const colorMap = new Map();
+            const uniqueColors = [];
+            const paletteGroupIndexes = new Array(palette.length);
+
+            colorGroups.forEach((group, groupIndex) => {
+                if (group.totalCount === 0) {
+                    return;
+                }
+
+                const averaged = {
+                    r: Math.round(group.totalR / group.totalCount),
+                    g: Math.round(group.totalG / group.totalCount),
+                    b: Math.round(group.totalB / group.totalCount)
+                };
+                const color = `rgb(${averaged.r},${averaged.g},${averaged.b})`;
+                const colorInfo = {
+                    color: color,
+                    originalColor: color,
+                    symbol: String.fromCharCode(65 + groupIndex),
+                    index: groupIndex
+                };
+
+                colorMap.set(groupIndex, colorInfo);
+                uniqueColors.push(colorInfo);
+
+                group.paletteIndexes.forEach((paletteIndex) => {
+                    paletteGroupIndexes[paletteIndex] = groupIndex;
+                });
+            });
+
+            return { colorMap, uniqueColors, paletteGroupIndexes };
+        }
+
+        function buildColorGroups(paletteEntries, toleranceDistance) {
+            const colorGroups = [];
+            const orderedPalette = paletteEntries.slice().sort((a, b) => b.count - a.count);
+
             orderedPalette.forEach((entry) => {
                 const colorVector = { r: entry.r, g: entry.g, b: entry.b };
                 let matchingGroup = null;
@@ -1431,37 +1607,130 @@
                 matchingGroup.paletteIndexes.push(entry.index);
             });
 
-            const colorMap = new Map();
-            const uniqueColors = [];
-            const paletteGroupIndexes = [];
+            return colorGroups;
+        }
 
-            colorGroups.forEach((group, groupIndex) => {
-                if (group.totalCount === 0) {
-                    return;
+        function mergeSmallestGroups(colorGroups, targetCount) {
+            if (colorGroups.length <= targetCount) {
+                return colorGroups;
+            }
+
+            const groups = colorGroups.slice().sort((a, b) => b.totalCount - a.totalCount);
+
+            while (groups.length > targetCount) {
+                const smallest = groups.pop();
+                if (!smallest) {
+                    break;
                 }
 
-                const averaged = {
-                    r: Math.round(group.totalR / group.totalCount),
-                    g: Math.round(group.totalG / group.totalCount),
-                    b: Math.round(group.totalB / group.totalCount)
-                };
-                const color = `rgb(${averaged.r},${averaged.g},${averaged.b})`;
-                const colorInfo = {
-                    color: color,
-                    originalColor: color,
-                    symbol: String.fromCharCode(65 + groupIndex),
-                    index: groupIndex
-                };
-
-                colorMap.set(groupIndex, colorInfo);
-                uniqueColors.push(colorInfo);
-
-                group.paletteIndexes.forEach((paletteIndex) => {
-                    paletteGroupIndexes[paletteIndex] = groupIndex;
+                let bestIndex = 0;
+                let bestDistance = Infinity;
+                groups.forEach((group, index) => {
+                    const distance = getColorDistance(group.referenceColor, smallest.referenceColor);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        bestIndex = index;
+                    }
                 });
+
+                const targetGroup = groups[bestIndex];
+                if (targetGroup) {
+                    targetGroup.totalR += smallest.totalR;
+                    targetGroup.totalG += smallest.totalG;
+                    targetGroup.totalB += smallest.totalB;
+                    targetGroup.totalCount += smallest.totalCount;
+                    targetGroup.paletteIndexes.push(...smallest.paletteIndexes);
+
+                    if (targetGroup.totalCount > 0) {
+                        targetGroup.referenceColor = {
+                            r: Math.round(targetGroup.totalR / targetGroup.totalCount),
+                            g: Math.round(targetGroup.totalG / targetGroup.totalCount),
+                            b: Math.round(targetGroup.totalB / targetGroup.totalCount)
+                        };
+                    }
+                }
+            }
+
+            return groups;
+        }
+
+        function splitGroupsForTarget(colorGroups, paletteEntries, targetCount) {
+            if (colorGroups.length >= targetCount) {
+                return colorGroups;
+            }
+
+            const paletteByIndex = new Map();
+            paletteEntries.forEach(entry => {
+                paletteByIndex.set(entry.index, entry);
             });
 
-            return { colorMap, uniqueColors, paletteGroupIndexes };
+            const groups = colorGroups.map(group => ({
+                referenceColor: { ...group.referenceColor },
+                totalR: group.totalR,
+                totalG: group.totalG,
+                totalB: group.totalB,
+                totalCount: group.totalCount,
+                paletteIndexes: [...group.paletteIndexes]
+            }));
+
+            while (groups.length < targetCount) {
+                let donorGroupIndex = -1;
+                let donorPaletteIndex = null;
+                let largestEntryCount = 0;
+
+                groups.forEach((group, groupIndex) => {
+                    if (group.paletteIndexes.length <= 1) {
+                        return;
+                    }
+                    group.paletteIndexes.forEach((paletteIndex) => {
+                        const entry = paletteByIndex.get(paletteIndex);
+                        if (entry && entry.count > largestEntryCount) {
+                            largestEntryCount = entry.count;
+                            donorGroupIndex = groupIndex;
+                            donorPaletteIndex = paletteIndex;
+                        }
+                    });
+                });
+
+                if (donorGroupIndex === -1 || donorPaletteIndex === null) {
+                    break;
+                }
+
+                const donorGroup = groups[donorGroupIndex];
+                const entry = paletteByIndex.get(donorPaletteIndex);
+                if (!entry) {
+                    break;
+                }
+
+                donorGroup.paletteIndexes = donorGroup.paletteIndexes.filter(idx => idx !== donorPaletteIndex);
+                donorGroup.totalR -= entry.r * entry.count;
+                donorGroup.totalG -= entry.g * entry.count;
+                donorGroup.totalB -= entry.b * entry.count;
+                donorGroup.totalCount -= entry.count;
+
+                if (donorGroup.totalCount > 0) {
+                    donorGroup.referenceColor = {
+                        r: Math.round(donorGroup.totalR / donorGroup.totalCount),
+                        g: Math.round(donorGroup.totalG / donorGroup.totalCount),
+                        b: Math.round(donorGroup.totalB / donorGroup.totalCount)
+                    };
+                } else {
+                    donorGroup.referenceColor = { r: entry.r, g: entry.g, b: entry.b };
+                }
+
+                const newGroup = {
+                    referenceColor: { r: entry.r, g: entry.g, b: entry.b },
+                    totalR: entry.r * entry.count,
+                    totalG: entry.g * entry.count,
+                    totalB: entry.b * entry.count,
+                    totalCount: entry.count,
+                    paletteIndexes: [entry.index]
+                };
+
+                groups.push(newGroup);
+            }
+
+            return groups;
         }
 
         function calculateToleranceDistance(value, maxColors) {
