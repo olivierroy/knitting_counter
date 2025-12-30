@@ -834,8 +834,8 @@
             </div>
             <div class="control-group" title="How similar colors should be grouped together">
                 <label for="tolerance">Color Grouping:</label>
-                <input type="range" id="toleranceSlider" min="0" max="100" value="90">
-                <span class="slider-value" id="toleranceValue">90</span>
+                <input type="range" id="toleranceSlider" min="0" max="100" value="60">
+                <span class="slider-value" id="toleranceValue">60</span>
                 <small>Group similar colors together</small>
             </div>
             <div class="control-group" title="Maximum number of different colors to detect in your pattern">
@@ -923,6 +923,9 @@
         let uploadSection = document.getElementById('uploadSection');
         let gridColorBtn = document.getElementById('gridColorBtn');
         let currentGridColor = 'rgba(255, 255, 255, 0.5)';
+        let colorReplacementSection = document.getElementById('colorReplacement');
+        let colorReplacementContent = document.getElementById('colorReplacementContent');
+        let customColorOverrides = {};
 
         // Drag and drop functionality
         uploadSection.addEventListener('dragover', (e) => {
@@ -998,10 +1001,38 @@
         setupSlider('maxColorsSlider', 'maxColorsValue');
         setupSlider('overlayOpacitySlider', 'overlayOpacityValue');
 
+        if (colorReplacementContent) {
+            colorReplacementContent.addEventListener('change', (event) => {
+                const target = event.target;
+                if (target.classList.contains('color-override-input')) {
+                    const symbol = target.getAttribute('data-symbol');
+                    if (symbol) {
+                        applyColorOverride(symbol, target.value);
+                    }
+                }
+            });
+
+            colorReplacementContent.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.classList.contains('reset-color-btn')) {
+                    const symbol = target.getAttribute('data-symbol');
+                    if (symbol) {
+                        resetColorOverride(symbol);
+                    }
+                }
+            });
+        }
+
         function handleFile(file) {
             if (!file.type.startsWith('image/')) {
                 alert('Please select an image file.');
                 return;
+            }
+
+            customColorOverrides = {};
+            if (colorReplacementSection) {
+                colorReplacementSection.style.display = 'none';
+                colorReplacementContent.innerHTML = '';
             }
 
             const reader = new FileReader();
@@ -1172,7 +1203,8 @@
             }
 
             // Perform color clustering to limit colors and ensure all cells have colors
-            const colorMap = performColorClustering(allCellColors, maxColors);
+            const colorMap = performColorClustering(allCellColors, maxColors, tolerance);
+            applyCustomColorOverrides(colorMap);
 
             // Rebuild pattern data with clustered colors
             patternData = rebuildPatternData(allCellColors, colorMap, rows, cols);
@@ -1193,19 +1225,6 @@
 
             // Show results explanation
             document.getElementById('resultsExplanation').style.display = 'block';
-        }
-
-        function getColorKey(r, g, b, tolerance) {
-            // Quantize colors based on tolerance
-            const step = tolerance * 2;
-            const qR = Math.round(r / step) * step;
-            const qG = Math.round(g / step) * step;
-            const qB = Math.round(b / step) * step;
-            return `${qR},${qG},${qB}`;
-        }
-
-        function isSameColor(color1, color2) {
-            return color1 === color2;
         }
 
         function randomizeGridColor() {
@@ -1277,83 +1296,325 @@
             ctx.globalAlpha = 1.0;
         }
 
-        function performColorClustering(cellColors, maxColors) {
+        function performColorClustering(cellColors, maxColors, toleranceValue) {
             if (cellColors.length === 0) return new Map();
 
-            // Simple k-means-like clustering
-            let clusters = [];
-
-            // Initialize with first few colors as seeds
-            for (let i = 0; i < Math.min(maxColors, cellColors.length); i++) {
-                const seedIndex = Math.floor(i * cellColors.length / maxColors);
+            const clusterCount = Math.max(1, Math.min(maxColors, cellColors.length));
+            const clusters = [];
+            for (let i = 0; i < clusterCount; i++) {
+                const seedIndex = Math.floor((i * cellColors.length) / clusterCount);
                 const seed = cellColors[seedIndex];
                 clusters.push({
                     r: seed.r,
                     g: seed.g,
                     b: seed.b,
                     count: 0,
-                    totalR: 0,
-                    totalG: 0,
-                    totalB: 0
+                    sumR: 0,
+                    sumG: 0,
+                    sumB: 0
                 });
             }
 
-            // Assign each cell to nearest cluster and update cluster centers
-            for (let iteration = 0; iteration < 5; iteration++) {
-                // Reset cluster totals
-                clusters.forEach(cluster => {
-                    cluster.count = 0;
-                    cluster.totalR = 0;
-                    cluster.totalG = 0;
-                    cluster.totalB = 0;
-                });
-
-                // Assign cells to nearest cluster
-                cellColors.forEach(cell => {
-                    let minDistance = Infinity;
-                    let bestCluster = 0;
-
-                    clusters.forEach((cluster, index) => {
-                        const distance = Math.sqrt(
-                            Math.pow(cell.r - cluster.r, 2) +
-                            Math.pow(cell.g - cluster.g, 2) +
-                            Math.pow(cell.b - cluster.b, 2)
-                        );
-                        if (distance < minDistance) {
-                            minDistance = distance;
-                            bestCluster = index;
-                        }
-                    });
-
-                    cell.clusterIndex = bestCluster;
-                    clusters[bestCluster].count++;
-                    clusters[bestCluster].totalR += cell.r;
-                    clusters[bestCluster].totalG += cell.g;
-                    clusters[bestCluster].totalB += cell.b;
-                });
-
-                // Update cluster centers
-                clusters.forEach(cluster => {
+            const iterations = 5;
+            for (let iteration = 0; iteration < iterations; iteration++) {
+                assignCellsToClusters(cellColors, clusters);
+                clusters.forEach((cluster, index) => {
                     if (cluster.count > 0) {
-                        cluster.r = Math.round(cluster.totalR / cluster.count);
-                        cluster.g = Math.round(cluster.totalG / cluster.count);
-                        cluster.b = Math.round(cluster.totalB / cluster.count);
+                        cluster.r = Math.round(cluster.sumR / cluster.count);
+                        cluster.g = Math.round(cluster.sumG / cluster.count);
+                        cluster.b = Math.round(cluster.sumB / cluster.count);
+                    } else {
+                        const fallbackCell = cellColors[(index + iteration * 7) % cellColors.length];
+                        cluster.r = fallbackCell.r;
+                        cluster.g = fallbackCell.g;
+                        cluster.b = fallbackCell.b;
                     }
                 });
             }
 
-            // Create color map
+            assignCellsToClusters(cellColors, clusters);
+
+            const palette = clusters.map((cluster, index) => {
+                if (cluster.count > 0) {
+                    cluster.r = Math.round(cluster.sumR / cluster.count);
+                    cluster.g = Math.round(cluster.sumG / cluster.count);
+                    cluster.b = Math.round(cluster.sumB / cluster.count);
+                }
+                return {
+                    index: index,
+                    r: cluster.r,
+                    g: cluster.g,
+                    b: cluster.b,
+                    count: cluster.count
+                };
+            });
+
+            const groupingResult = groupPaletteColors(palette, toleranceValue, maxColors);
+            const { paletteGroupIndexes, colorMap, uniqueColors } = groupingResult;
+
+            cellColors.forEach((cell) => {
+                const mappedIndex = paletteGroupIndexes[cell.clusterIndex];
+                if (mappedIndex !== undefined) {
+                    cell.clusterIndex = mappedIndex;
+                }
+            });
+
+            colorMap.uniqueColors = uniqueColors;
+            return colorMap;
+        }
+
+        function assignCellsToClusters(cellColors, clusters) {
+            clusters.forEach(cluster => {
+                cluster.count = 0;
+                cluster.sumR = 0;
+                cluster.sumG = 0;
+                cluster.sumB = 0;
+            });
+
+            cellColors.forEach(cell => {
+                let minDistance = Infinity;
+                let bestCluster = 0;
+
+                clusters.forEach((cluster, index) => {
+                    const distance = Math.sqrt(
+                        Math.pow(cell.r - cluster.r, 2) +
+                        Math.pow(cell.g - cluster.g, 2) +
+                        Math.pow(cell.b - cluster.b, 2)
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestCluster = index;
+                    }
+                });
+
+                cell.clusterIndex = bestCluster;
+                const target = clusters[bestCluster];
+                target.count++;
+                target.sumR += cell.r;
+                target.sumG += cell.g;
+                target.sumB += cell.b;
+            });
+        }
+
+        function groupPaletteColors(palette, toleranceValue, maxColors) {
+            const toleranceDistance = calculateToleranceDistance(toleranceValue, maxColors);
+            const colorGroups = [];
+
+            const orderedPalette = palette.slice().sort((a, b) => b.count - a.count);
+            orderedPalette.forEach((entry) => {
+                const colorVector = { r: entry.r, g: entry.g, b: entry.b };
+                let matchingGroup = null;
+
+                for (const group of colorGroups) {
+                    if (getColorDistance(colorVector, group.referenceColor) <= toleranceDistance) {
+                        matchingGroup = group;
+                        break;
+                    }
+                }
+
+                if (!matchingGroup) {
+                    matchingGroup = {
+                        referenceColor: { ...colorVector },
+                        totalR: 0,
+                        totalG: 0,
+                        totalB: 0,
+                        totalCount: 0,
+                        paletteIndexes: []
+                    };
+                    colorGroups.push(matchingGroup);
+                }
+
+                matchingGroup.totalR += entry.r * entry.count;
+                matchingGroup.totalG += entry.g * entry.count;
+                matchingGroup.totalB += entry.b * entry.count;
+                matchingGroup.totalCount += entry.count;
+                matchingGroup.paletteIndexes.push(entry.index);
+            });
+
             const colorMap = new Map();
-            clusters.forEach((cluster, index) => {
-                const color = `rgb(${cluster.r},${cluster.g},${cluster.b})`;
-                colorMap.set(index, {
+            const uniqueColors = [];
+            const paletteGroupIndexes = [];
+
+            colorGroups.forEach((group, groupIndex) => {
+                if (group.totalCount === 0) {
+                    return;
+                }
+
+                const averaged = {
+                    r: Math.round(group.totalR / group.totalCount),
+                    g: Math.round(group.totalG / group.totalCount),
+                    b: Math.round(group.totalB / group.totalCount)
+                };
+                const color = `rgb(${averaged.r},${averaged.g},${averaged.b})`;
+                const colorInfo = {
                     color: color,
-                    symbol: String.fromCharCode(65 + index),
-                    index: index
+                    originalColor: color,
+                    symbol: String.fromCharCode(65 + groupIndex),
+                    index: groupIndex
+                };
+
+                colorMap.set(groupIndex, colorInfo);
+                uniqueColors.push(colorInfo);
+
+                group.paletteIndexes.forEach((paletteIndex) => {
+                    paletteGroupIndexes[paletteIndex] = groupIndex;
                 });
             });
 
-            return colorMap;
+            return { colorMap, uniqueColors, paletteGroupIndexes };
+        }
+
+        function calculateToleranceDistance(value, maxColors) {
+            const clamped = Math.max(0, Math.min(100, value || 0));
+            const minDistance = 5;
+            const maxDistance = 80;
+            const normalizedTolerance = Math.pow(clamped / 100, 1.2);
+            const baseDistance = minDistance + normalizedTolerance * (maxDistance - minDistance);
+
+            const sliderMax = parseInt(document.getElementById('maxColorsSlider')?.max || '20', 10);
+            const effectiveMax = Math.max(2, Math.min(sliderMax, maxColors || sliderMax));
+            const maxScale = 1 - ((effectiveMax - 2) / (sliderMax - 2)) * 0.6;
+            const adjustedScale = Math.max(0.35, maxScale);
+
+            return minDistance + (baseDistance - minDistance) * adjustedScale;
+        }
+
+        function getColorDistance(colorA, colorB) {
+            const dr = colorA.r - colorB.r;
+            const dg = colorA.g - colorB.g;
+            const db = colorA.b - colorB.b;
+            return Math.sqrt(dr * dr + dg * dg + db * db);
+        }
+
+        function getUniqueColors(colorMap) {
+            if (!colorMap) return [];
+            if (Array.isArray(colorMap.uniqueColors)) {
+                return colorMap.uniqueColors;
+            }
+
+            const uniqueBySymbol = new Map();
+            colorMap.forEach((colorInfo) => {
+                if (colorInfo && !uniqueBySymbol.has(colorInfo.symbol)) {
+                    uniqueBySymbol.set(colorInfo.symbol, colorInfo);
+                }
+            });
+
+            const uniqueList = Array.from(uniqueBySymbol.values());
+            colorMap.uniqueColors = uniqueList;
+            return uniqueList;
+        }
+
+        function applyCustomColorOverrides(colorMap) {
+            if (!colorMap) return;
+            const uniqueColors = getUniqueColors(colorMap);
+            const symbolsInUse = new Set();
+            uniqueColors.forEach((colorInfo) => {
+                symbolsInUse.add(colorInfo.symbol);
+                if (!colorInfo.originalColor) {
+                    colorInfo.originalColor = colorInfo.color;
+                }
+                const override = customColorOverrides[colorInfo.symbol];
+                colorInfo.color = override || colorInfo.originalColor;
+            });
+
+            Object.keys(customColorOverrides).forEach((symbol) => {
+                if (!symbolsInUse.has(symbol)) {
+                    delete customColorOverrides[symbol];
+                }
+            });
+        }
+
+        function renderColorReplacementControls(colorMap) {
+            if (!colorReplacementSection || !colorReplacementContent) return;
+
+            if (!colorMap) {
+                colorReplacementSection.style.display = 'none';
+                colorReplacementContent.innerHTML = '';
+                return;
+            }
+
+            const uniqueColors = getUniqueColors(colorMap);
+            if (uniqueColors.length === 0) {
+                colorReplacementSection.style.display = 'none';
+                colorReplacementContent.innerHTML = '';
+                return;
+            }
+
+            let replacementHTML = '';
+            uniqueColors.forEach((colorInfo) => {
+                const currentColorHex = colorToHex(customColorOverrides[colorInfo.symbol] || colorInfo.color);
+                replacementHTML += `
+                    <div class="color-replacement-item">
+                        <div>
+                            <strong>Color ${colorInfo.symbol}</strong>
+                        </div>
+                        <div class="color-preview-group">
+                            <div>
+                                <span class="color-sample" style="background-color: ${colorInfo.originalColor};"></span>
+                                <small>Original</small>
+                            </div>
+                            <div>
+                                <span class="color-sample" style="background-color: ${colorInfo.color};"></span>
+                                <small>Current</small>
+                            </div>
+                        </div>
+                        <input type="color" class="color-override-input" data-symbol="${colorInfo.symbol}" value="${currentColorHex}">
+                        <button type="button" class="reset-color-btn" data-symbol="${colorInfo.symbol}" ${customColorOverrides[colorInfo.symbol] ? '' : 'disabled'}>Reset</button>
+                    </div>
+                `;
+            });
+
+            colorReplacementContent.innerHTML = replacementHTML;
+            colorReplacementSection.style.display = 'block';
+        }
+
+        function colorToHex(colorValue) {
+            if (!colorValue) return '#000000';
+            if (colorValue.startsWith('#')) {
+                return normalizeHex(colorValue);
+            }
+
+            const rgbMatch = colorValue.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+            if (!rgbMatch) {
+                return '#000000';
+            }
+
+            const r = parseInt(rgbMatch[1], 10);
+            const g = parseInt(rgbMatch[2], 10);
+            const b = parseInt(rgbMatch[3], 10);
+            return '#' + [r, g, b].map((value) => value.toString(16).padStart(2, '0')).join('');
+        }
+
+        function normalizeHex(hexValue) {
+            if (!hexValue) return '#000000';
+            let hex = hexValue.trim();
+            if (!hex.startsWith('#')) {
+                hex = `#${hex}`;
+            }
+            if (hex.length === 4) {
+                const [, r, g, b] = hex;
+                hex = `#${r}${r}${g}${g}${b}${b}`;
+            }
+            if (hex.length !== 7) {
+                return '#000000';
+            }
+            return hex.toLowerCase();
+        }
+
+        function applyColorOverride(symbol, color) {
+            if (!symbol || !color) return;
+            customColorOverrides[symbol] = color;
+            if (originalImage) {
+                processImage();
+            }
+        }
+
+        function resetColorOverride(symbol) {
+            if (!symbol) return;
+            delete customColorOverrides[symbol];
+            if (originalImage) {
+                processImage();
+            }
         }
 
         function rebuildPatternData(cellColors, colorMap, rows, cols) {
@@ -1437,6 +1698,7 @@
 
             let totalStitches = 0;
             let patternText = '';
+            const uniqueColors = getUniqueColors(colorMap);
 
             patternData.forEach((row, rowIndex) => {
                 patternText += `Row ${rowIndex + 1}: `;
@@ -1473,14 +1735,14 @@
                 Rows: ${patternData.length}<br>
                 Columns: ${patternData[0].length}<br>
                 Total Stitches: ${totalStitches}<br>
-                Colors Used: ${colorMap.size}<br><br>
+                Colors Used: ${uniqueColors.length}<br><br>
                 <strong>Pattern:</strong><br>
                 <pre>${patternText}</pre>
             `;
 
             // Create legend
             let legendHTML = '';
-            colorMap.forEach((colorInfo) => {
+            uniqueColors.forEach((colorInfo) => {
                 legendHTML += `
                     <div style="margin-bottom: 5px;">
                         <span class="color-sample" style="background-color: ${colorInfo.color};"></span>
@@ -1490,6 +1752,7 @@
             });
 
             legendContent.innerHTML = legendHTML;
+            renderColorReplacementControls(colorMap);
 
             info.style.display = 'block';
             legend.style.display = 'block';
