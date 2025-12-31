@@ -1013,6 +1013,16 @@
         let colorReplacementContent = document.getElementById('colorReplacementContent');
         let customColorOverrides = {};
 
+        function trackEvent(name, data = {}) {
+            if (window.umami && typeof window.umami.track === 'function') {
+                try {
+                    window.umami.track(name, data);
+                } catch (error) {
+                    console.warn('Umami tracking failed', error);
+                }
+            }
+        }
+
         // Drag and drop functionality
         uploadSection.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -1143,6 +1153,11 @@
                 alert('Please select an image file.');
                 return;
             }
+
+            trackEvent('image-upload', {
+                type: file.type || 'unknown',
+                size: file.size || 0
+            });
 
             customColorOverrides = {};
             if (colorReplacementSection) {
@@ -2029,6 +2044,8 @@
 
         function downloadImage() {
             if (!originalImage) return;
+
+            trackEvent('image-download');
 
             // Create a temporary link element
             const link = document.createElement('a');
